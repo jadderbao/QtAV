@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
     QtAV:  Multimedia framework based on Qt and FFmpeg
     Copyright (C) 2012-2017 Wang Bin <wbsecg1@gmail.com>
 
@@ -133,10 +133,51 @@ QUrl QmlAVPlayer::source() const
     return mSource;
 }
 
+QVariant QmlAVPlayer::device() const
+{
+    return QVariant();
+}
+
+QVariant QmlAVPlayer::medial() const
+{
+     return QVariant();
+}
+
+void QmlAVPlayer::reload()
+{
+      Q_EMIT sourceChanged(); //TODO: Q_EMIT only when player loaded a new source
+
+       if (mHasAudio) {
+           mHasAudio = false;
+           Q_EMIT hasAudioChanged();
+       }
+       if (mHasVideo) {
+           mHasVideo = false;
+           Q_EMIT hasVideoChanged();
+       }
+
+       // TODO: in componentComplete()?
+       if (m_complete && (mAutoLoad || mAutoPlay)) {
+           mError = NoError;
+           mErrorString = tr("No error");
+           Q_EMIT error(mError, mErrorString);
+           Q_EMIT errorChanged();
+           stop(); // TODO: no stop for autoLoad?
+           if (mAutoLoad)
+               mpPlayer->load();
+           if (mAutoPlay) {
+               //mPlaybackState is actually changed in slots. But if set to a new source the state may not change before call play()
+               mPlaybackState = StoppedState;
+               play();
+           }
+       }
+}
+
 void QmlAVPlayer::setSource(const QUrl &url)
 {
     if (mSource == url)
         return;
+
     mSource = url;
     if (url.isLocalFile() || url.scheme().isEmpty()
             || url.scheme().startsWith("qrc")
@@ -146,32 +187,32 @@ void QmlAVPlayer::setSource(const QUrl &url)
         mpPlayer->setFile(QUrl::fromPercentEncoding(url.toEncoded()));
     else
         mpPlayer->setFile(url.toEncoded());
-    Q_EMIT sourceChanged(); //TODO: Q_EMIT only when player loaded a new source
 
-    if (mHasAudio) {
-        mHasAudio = false;
-        Q_EMIT hasAudioChanged();
-    }
-    if (mHasVideo) {
-        mHasVideo = false;
-        Q_EMIT hasVideoChanged();
+    reload();
+}
+
+void QmlAVPlayer::setDevice(const QVariant &source)
+{
+    if(!source.canConvert<QIODevice*>())
+        return;
+
+    mSource.clear();
+    mpPlayer->setIODevice(source.value<QIODevice*>());
+
+    reload();
+}
+
+void QmlAVPlayer::setMedial(const QVariant &source)
+{
+    if(!source.canConvert<MediaIO*>()){
+        qDebug("setMedial: Source can not conver to medial.");
+        return;
     }
 
-    // TODO: in componentComplete()?
-    if (m_complete && (mAutoLoad || mAutoPlay)) {
-        mError = NoError;
-        mErrorString = tr("No error");
-        Q_EMIT error(mError, mErrorString);
-        Q_EMIT errorChanged();
-        stop(); // TODO: no stop for autoLoad?
-        if (mAutoLoad)
-            mpPlayer->load();
-        if (mAutoPlay) {
-            //mPlaybackState is actually changed in slots. But if set to a new source the state may not change before call play()
-            mPlaybackState = StoppedState;
-            play();
-        }
-    }
+    mSource.clear();
+    mpPlayer->setInput(source.value<MediaIO*>());
+
+    reload();
 }
 
 bool QmlAVPlayer::isAutoLoad() const
@@ -839,6 +880,17 @@ void QmlAVPlayer::play(const QUrl &url)
         return;
     setSource(url);
     if (!autoPlay())
+        play();
+}
+
+void QmlAVPlayer::play(const QVariant &value)
+{
+    if(!value.canConvert<QIODevice*>())
+        return;
+
+    setDevice(value);
+
+    if(!autoPlay())
         play();
 }
 

@@ -1,4 +1,4 @@
-
+﻿
 import QtQuick 2.0
 import QtAV 1.7
 
@@ -291,6 +291,10 @@ Item {
         This property holds the source URL of the media.
     */
     property alias source:          player.source
+
+    property alias device:          player.device
+
+    property alias medial:          player.medial
 
     /*!
         \qmlproperty enumeration Video::status

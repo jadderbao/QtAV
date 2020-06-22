@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
     QtAV:  Multimedia framework based on Qt and FFmpeg
     Copyright (C) 2012-2017 Wang Bin <wbsecg1@gmail.com>
 
@@ -30,10 +30,14 @@
 #include <QmlAV/QuickFilter.h>
 #include <QtAV/AVError.h>
 #include <QtAV/VideoCapture.h>
+#include <QtAV/MediaIO.h>
 
 namespace QtAV {
 class AVPlayer;
 }
+
+Q_DECLARE_METATYPE(QtAV::MediaIO*);
+
 using namespace QtAV;
 class QmlAVPlayer : public QObject, public QQmlParserStatus
 {
@@ -52,6 +56,8 @@ class QmlAVPlayer : public QObject, public QQmlParserStatus
     Q_PROPERTY(bool autoLoad READ isAutoLoad WRITE setAutoLoad NOTIFY autoLoadChanged)
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QVariant device READ device WRITE setDevice NOTIFY sourceChanged)
+    Q_PROPERTY(QVariant medial READ medial WRITE setMedial NOTIFY sourceChanged)
     Q_PROPERTY(int loops READ loopCount WRITE setLoopCount NOTIFY loopCountChanged)
     Q_PROPERTY(qreal bufferProgress READ bufferProgress NOTIFY bufferProgressChanged)
     Q_PROPERTY(bool seekable READ isSeekable NOTIFY seekableChanged)
@@ -156,11 +162,15 @@ public:
     bool hasVideo() const;
 
     QUrl source() const;
+    QVariant device() const;
+    QVariant medial() const;
     /*!
      * \brief setSource
      * If url is changed and auto load is true, current playback will stop.
      */
     void setSource(const QUrl& url);
+    void setDevice(const QVariant& source);
+    void setMedial(const QVariant& source);
 
     // 0,1: play once. MediaPlayer.Infinite: forever.
     // >1: play loopCount() - 1 times. different from Qt
@@ -198,6 +208,7 @@ public:
     qreal playbackRate() const;
     void setPlaybackRate(qreal s);
     Q_INVOKABLE void play(const QUrl& url);
+    Q_INVOKABLE void play(const QVariant& value);
     AVPlayer *player();
 
     bool isAutoLoad() const;
@@ -340,6 +351,9 @@ Q_SIGNALS:
     void statusChanged();
     void mediaObjectChanged();
     void audioBackendsChanged();
+protected:
+    void reload();
+
 private Q_SLOTS:
     // connect to signals from player
     void _q_error(const QtAV::AVError& e);

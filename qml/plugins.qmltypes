@@ -1,4 +1,4 @@
-import QtQuick.tooling 1.1
+﻿import QtQuick.tooling 1.1
 
 // This file describes the plugin-supplied types contained in the library.
 // It is used for QML tooling purposes only.
@@ -219,6 +219,8 @@ Module {
         Property { name: "mediaEndAction"; type: "MediaEndAction" }
         Property { name: "playbackRate"; type: "double" }
         Property { name: "source"; type: "QUrl" }
+        Property { name: "device"; type: "QVariant" }
+        Property { name: "medial"; type: "QVariant" }
         Property { name: "loops"; type: "int" }
         Property { name: "bufferProgress"; type: "double"; isReadonly: true }
         Property { name: "seekable"; type: "bool"; isReadonly: true }
